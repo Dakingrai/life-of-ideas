@@ -1,9 +1,9 @@
-"""Suite-wide guards: no test may touch the real `~/.local/bin/loil` or the real `~/.loil`.
+"""Suite-wide guards: no test may touch the real `~/.local/bin/loi` or the real `~/.loi`.
 
-`shim.shim_path()` and `project.loil_home()` read `HOME` / `LOIL_HOME` per call, and `init`
+`shim.shim_path()` and `project.loi_home()` read `HOME` / `LOI_HOME` per call, and `init`
 writes both, so a fixture misapplied (or a test forgetting the isolated env) would create
 the real shim or the real store. The real HOME is captured at import time, before any
-monkeypatch runs; every test also gets `LOIL_HOME` pointed at its own tmp dir.
+monkeypatch runs; every test also gets `LOI_HOME` pointed at its own tmp dir.
 """
 
 import os
@@ -12,8 +12,8 @@ from pathlib import Path
 import pytest
 
 REAL_HOME = Path(os.path.expanduser("~"))
-REAL_SHIM = REAL_HOME / ".local" / "bin" / "loil"
-REAL_STORE = REAL_HOME / ".loil"
+REAL_SHIM = REAL_HOME / ".local" / "bin" / "loi"
+REAL_STORE = REAL_HOME / ".loi"
 _EXISTED = REAL_SHIM.exists() or REAL_SHIM.is_symlink()
 _BYTES = REAL_SHIM.read_bytes() if _EXISTED and REAL_SHIM.is_file() else None
 
@@ -54,6 +54,6 @@ def real_store_untouched():
 @pytest.fixture(autouse=True)
 def store_home(tmp_path, monkeypatch):
     """Every test's central store is its own tmp dir (subprocesses inherit it)."""
-    home = tmp_path / "loilhome"
-    monkeypatch.setenv("LOIL_HOME", str(home))
+    home = tmp_path / "loihome"
+    monkeypatch.setenv("LOI_HOME", str(home))
     return home

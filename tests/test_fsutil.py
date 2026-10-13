@@ -7,8 +7,8 @@ import sys
 
 import pytest
 
-from loil.errors import LoilError
-from loil.util.fsutil import atomic_write_bytes
+from loi.errors import LoiError
+from loi.util.fsutil import atomic_write_bytes
 
 
 def test_writes_and_creates_parent(tmp_path):
@@ -41,7 +41,7 @@ def test_temp_removed_on_failed_replace(tmp_path, monkeypatch):
         raise OSError("disk on fire")
 
     monkeypatch.setattr(os, "replace", boom)
-    with pytest.raises(LoilError, match="cannot write"):
+    with pytest.raises(LoiError, match="cannot write"):
         atomic_write_bytes(target, b"new")
     assert target.read_bytes() == b"old" and os.listdir(tmp_path) == ["f"]
 
@@ -59,7 +59,7 @@ def test_unwritable_parent_is_loi_error(tmp_path):
     d.mkdir()
     d.chmod(0o500)
     try:
-        with pytest.raises(LoilError, match="cannot write"):
+        with pytest.raises(LoiError, match="cannot write"):
             atomic_write_bytes(d / "f", b"x")
     finally:
         d.chmod(0o700)
@@ -67,7 +67,7 @@ def test_unwritable_parent_is_loi_error(tmp_path):
 
 WRITER = """
 import pathlib, sys
-from loil.util.fsutil import atomic_write_bytes
+from loi.util.fsutil import atomic_write_bytes
 path = pathlib.Path(sys.argv[1]); tag = sys.argv[2]
 for i in range(200):
     atomic_write_bytes(path, (tag * 4000 + "\\n").encode())  # every payload is whole or absent

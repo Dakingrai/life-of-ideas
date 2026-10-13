@@ -1,4 +1,4 @@
-"""`loil capture [--session] [--backfill]` in-process and through the CLI; backfill via init."""
+"""`loi capture [--session] [--backfill]` in-process and through the CLI; backfill via init."""
 
 import io
 import json
@@ -8,10 +8,10 @@ import sys
 
 import pytest
 
-from loil.record import store
-from loil.commands.capture import run_capture
-from loil.commands.init import run_init
-from loil.record.project import Project
+from loi.record import store
+from loi.commands.capture import run_capture
+from loi.commands.init import run_init
+from loi.record.project import Project
 from test_capture import CC, FOREIGN, N_ARTIFACTS, PY, SID, SID2, env, make_layout, new_session, repo  # noqa: F401
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only")
@@ -72,14 +72,14 @@ def test_capture_outside_a_project_or_not_inited(tmp_path, env):
     nowhere = tmp_path / "nowhere"
     nowhere.mkdir()
     code, out, err = cap(nowhere)
-    assert code == 1 and "not a loil project" in err and out == ""
+    assert code == 1 and "not a loi project" in err and out == ""
 
 
 def test_backfill_creates_missing_sessions_skips_foreign_second_run_noop(repo, transcript):
     code, out, err = cap(repo, backfill=True)
     assert code == 0, err
     assert sessions(repo) == sorted([SID, SID2])
-    assert sorted(x.name for x in (repo / ".loil").iterdir()) == ["config.toml", "local.toml"]
+    assert sorted(x.name for x in (repo / ".loi").iterdir()) == ["config.toml", "local.toml"]
     assert FOREIGN not in out
     p = Project.open(repo)
     for sid in (SID, SID2):
@@ -109,7 +109,7 @@ def test_backfill_repairs_start_of_non_startup_sessions_only(repo, transcript):
 
 
 def test_backfill_missing_roots_are_skipped(repo, transcript, tmp_path):
-    entry = tmp_path / "loilhome" / "projects" / Project.open(repo).id / "project.json"
+    entry = tmp_path / "loihome" / "projects" / Project.open(repo).id / "project.json"
     d = json.loads(entry.read_text())
     d["roots"] = [str(tmp_path / "gone"), *d["roots"]]
     entry.write_text(json.dumps(d))

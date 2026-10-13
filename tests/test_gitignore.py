@@ -2,82 +2,82 @@ import os
 
 import pytest
 
-from loil.util import gitignore as gi
+from loi.util import gitignore as gi
 
 
 def test_absent(tmp_path):
-    assert gi.ensure_line(tmp_path, ".loil/") is True
-    assert (tmp_path / ".gitignore").read_bytes() == b".loil/\n"
-    assert gi.has_line(tmp_path, ".loil/")
-    assert not gi.has_line(tmp_path / "nowhere", ".loil/")
+    assert gi.ensure_line(tmp_path, ".loi/") is True
+    assert (tmp_path / ".gitignore").read_bytes() == b".loi/\n"
+    assert gi.has_line(tmp_path, ".loi/")
+    assert not gi.has_line(tmp_path / "nowhere", ".loi/")
 
 
 def test_no_trailing_newline(tmp_path):
-    (tmp_path / ".gitignore").write_bytes(b".loil/")
-    assert gi.ensure_line(tmp_path, ".loil/local.toml")
-    assert (tmp_path / ".gitignore").read_bytes() == b".loil/\n.loil/local.toml\n"
+    (tmp_path / ".gitignore").write_bytes(b".loi/")
+    assert gi.ensure_line(tmp_path, ".loi/local.toml")
+    assert (tmp_path / ".gitignore").read_bytes() == b".loi/\n.loi/local.toml\n"
 
 
 def test_last_line_is_target_without_newline(tmp_path):
-    (tmp_path / ".gitignore").write_bytes(b"x\n.loil/")
-    assert gi.has_line(tmp_path, ".loil/")
-    assert gi.ensure_line(tmp_path, ".loil/") is False
+    (tmp_path / ".gitignore").write_bytes(b"x\n.loi/")
+    assert gi.has_line(tmp_path, ".loi/")
+    assert gi.ensure_line(tmp_path, ".loi/") is False
 
 
 def test_crlf(tmp_path):
     f = tmp_path / ".gitignore"
-    f.write_bytes(b"a\r\n.loil/\r\nb\r\n")
-    assert gi.has_line(tmp_path, ".loil/")
-    assert gi.ensure_line(tmp_path, ".loil/") is False
+    f.write_bytes(b"a\r\n.loi/\r\nb\r\n")
+    assert gi.has_line(tmp_path, ".loi/")
+    assert gi.ensure_line(tmp_path, ".loi/") is False
     assert gi.ensure_line(tmp_path, "c")
-    assert f.read_bytes() == b"a\r\n.loil/\r\nb\r\nc\n"
-    assert gi.remove_line(tmp_path, ".loil/")
+    assert f.read_bytes() == b"a\r\n.loi/\r\nb\r\nc\n"
+    assert gi.remove_line(tmp_path, ".loi/")
     assert f.read_bytes() == b"a\r\nb\r\nc\n"
 
 
 def test_duplicate(tmp_path):
     f = tmp_path / ".gitignore"
-    f.write_bytes(b"x\n.loil/\n")
-    assert gi.ensure_line(tmp_path, ".loil/") is False
-    assert f.read_bytes() == b"x\n.loil/\n"
+    f.write_bytes(b"x\n.loi/\n")
+    assert gi.ensure_line(tmp_path, ".loi/") is False
+    assert f.read_bytes() == b"x\n.loi/\n"
 
 
 def test_bom(tmp_path):
     f = tmp_path / ".gitignore"
-    f.write_bytes(b"\xef\xbb\xbf.loil/\n")
-    assert gi.has_line(tmp_path, ".loil/")
-    assert gi.ensure_line(tmp_path, ".loil/") is False
-    assert f.read_bytes() == b"\xef\xbb\xbf.loil/\n"
+    f.write_bytes(b"\xef\xbb\xbf.loi/\n")
+    assert gi.has_line(tmp_path, ".loi/")
+    assert gi.ensure_line(tmp_path, ".loi/") is False
+    assert f.read_bytes() == b"\xef\xbb\xbf.loi/\n"
 
 
 def test_negation_is_not_a_match(tmp_path):
-    (tmp_path / ".gitignore").write_bytes(b"!.loil/\n")
-    assert not gi.has_line(tmp_path, ".loil/")
-    assert gi.ensure_line(tmp_path, ".loil/")
+    (tmp_path / ".gitignore").write_bytes(b"!.loi/\n")
+    assert not gi.has_line(tmp_path, ".loi/")
+    assert gi.ensure_line(tmp_path, ".loi/")
 
 
 def test_remove(tmp_path):
     f = tmp_path / ".gitignore"
-    f.write_bytes(b"x\n.loil/\ny\n")
-    assert gi.remove_line(tmp_path, ".loil/")
+    f.write_bytes(b"x\n.loi/\ny\n")
+    assert gi.remove_line(tmp_path, ".loi/")
     assert f.read_bytes() == b"x\ny\n"
-    assert gi.remove_line(tmp_path, ".loil/") is False
+    assert gi.remove_line(tmp_path, ".loi/") is False
     assert gi.remove_line(tmp_path / "nowhere", "z") is False
 
 
 def test_remove_leaving_empty(tmp_path):
     f = tmp_path / ".gitignore"
-    f.write_bytes(b".loil/\n")
-    assert gi.remove_line(tmp_path, ".loil/")
+    f.write_bytes(b".loi/\n")
+    assert gi.remove_line(tmp_path, ".loi/")
     assert f.read_bytes() == b""
 
 
 def test_non_utf8_preserved(tmp_path):
     f = tmp_path / ".gitignore"
-    f.write_bytes(b"caf\xe9\n.loil/\n")
+    f.write_bytes(b"caf\xe9\n.loi/\n")
     assert gi.ensure_line(tmp_path, "z")
-    assert f.read_bytes() == b"caf\xe9\n.loil/\nz\n"
-    assert gi.remove_line(tmp_path, ".loil/")
+    assert f.read_bytes() == b"caf\xe9\n.loi/\nz\n"
+    assert gi.remove_line(tmp_path, ".loi/")
     assert f.read_bytes() == b"caf\xe9\nz\n"
 
 
@@ -116,14 +116,14 @@ def test_is_git_checkout_unreadable_git_dir_is_not_a_checkout(tmp_path):
 
 
 def test_trailing_blanks_match_like_git(tmp_path):
-    (tmp_path / ".gitignore").write_text(".loil/record/ \nkeep\n")
-    assert gi.has_line(tmp_path, ".loil/record/")
-    assert gi.remove_line(tmp_path, ".loil/record/") and (tmp_path / ".gitignore").read_text() == "keep\n"
+    (tmp_path / ".gitignore").write_text(".loi/record/ \nkeep\n")
+    assert gi.has_line(tmp_path, ".loi/record/")
+    assert gi.remove_line(tmp_path, ".loi/record/") and (tmp_path / ".gitignore").read_text() == "keep\n"
 
 
 def test_unreadable_gitignore_is_a_loi_error(tmp_path):
-    from loil.errors import LoilError
+    from loi.errors import LoiError
 
     (tmp_path / ".gitignore").mkdir()
-    with pytest.raises(LoilError, match="cannot read"):
+    with pytest.raises(LoiError, match="cannot read"):
         gi.has_line(tmp_path, "x")

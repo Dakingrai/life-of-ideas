@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from loil import gitstate
+from loi import gitstate
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only")
 

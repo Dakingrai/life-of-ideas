@@ -5,9 +5,9 @@ import sys
 
 import pytest
 
-from loil.record import registry
-from loil.errors import LoilError
-from loil.record.project import Project
+from loi.record import registry
+from loi.errors import LoiError
+from loi.record.project import Project
 
 A = "01ARZ3NDEKTSV4RRFFQ69G5FAV"
 B = "01BX5ZZKBKACTAV9WEVGEMMVRZ"
@@ -46,7 +46,7 @@ def test_add_update_unregister(tmp_path, store_home):
 
 
 def test_without_id_raises(tmp_path, store_home):
-    with pytest.raises(LoilError, match="loil init"):
+    with pytest.raises(LoiError, match="loi init"):
         registry.register(Project(tmp_path))
     assert not store_home.exists()
 
@@ -65,9 +65,9 @@ def test_malformed_raises_naming_file(tmp_path, store_home, bad):
     f = store_home / "projects" / A / "project.json"
     f.parent.mkdir(parents=True)
     f.write_text(bad)
-    with pytest.raises(LoilError, match="project.json"):
+    with pytest.raises(LoiError, match="project.json"):
         registry.register(Project(tmp_path, id=A))
-    with pytest.raises(LoilError, match="project.json"):
+    with pytest.raises(LoiError, match="project.json"):
         registry.projects()
     assert f.read_text() == bad
     (store_home / "projects" / "stray-dir-without-file").mkdir()  # a store dir alone is not an entry
@@ -77,7 +77,7 @@ def test_malformed_raises_naming_file(tmp_path, store_home, bad):
 
 def test_honours_loi_home_env_over_pin(tmp_path, monkeypatch):
     other = tmp_path / "elsewhere"
-    monkeypatch.setenv("LOIL_HOME", str(other))
+    monkeypatch.setenv("LOI_HOME", str(other))
     registry.register(Project(tmp_path, id=A, home=tmp_path / "pinned"))
     assert (other / "projects" / A / "project.json").is_file()
     assert not (tmp_path / "pinned").exists()
@@ -86,20 +86,20 @@ def test_honours_loi_home_env_over_pin(tmp_path, monkeypatch):
 
 
 def test_pin_used_without_env(tmp_path, monkeypatch):
-    monkeypatch.delenv("LOIL_HOME")
+    monkeypatch.delenv("LOI_HOME")
     monkeypatch.setenv("HOME", str(tmp_path / "h"))
     pin = tmp_path / "pinned"
     registry.register(Project(tmp_path / "r", id=A, home=pin))
     assert (pin / "projects" / A / "project.json").is_file() and not (tmp_path / "h").exists()
-    assert registry.projects() == []  # default ~/.loil has nothing
+    assert registry.projects() == []  # default ~/.loi has nothing
     assert [e["id"] for e in registry.projects(home=pin)] == [A]
     assert registry.unregister(A) is False and registry.unregister(A, home=pin) is True
 
 
 WRITER = """
 import pathlib, sys
-from loil.record import registry
-from loil.record.project import Project
+from loi.record import registry
+from loi.record.project import Project
 root = pathlib.Path(sys.argv[1]); tag = sys.argv[2]
 for i in range(25):  # 25 distinct ids per process, plus 25 hits on one shared id (same-id race)
     own = "01ARZ3NDEKTSV4RRFFQ69G5F%s%s" % (tag, "0123456789ABCDEFGHJKMNPQR"[i])

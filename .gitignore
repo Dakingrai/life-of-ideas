@@ -5,7 +5,7 @@ dist/
 build/
 *.egg-info/
 .pytest_cache/
-.loil/local.toml
+.loi/local.toml
 .claude/settings.local.json
 .DS_Store
 

@@ -4,9 +4,9 @@ import stat
 
 import pytest
 
-from loil.record import store
-from loil.errors import LoilError, SchemaError
-from loil.record.project import Project
+from loi.record import store
+from loi.errors import LoiError, SchemaError
+from loi.record.project import Project
 
 PID = "01ARZ3NDEKTSV4RRFFQ69G5FAV"
 CC = "claude-code"
@@ -54,13 +54,13 @@ def raw(p, agent, sid, text):
 def test_ensure_layout_and_idempotent(tmp_path, store_home):
     p = Project(tmp_path, id=PID)
     store.ensure(p)
-    assert not (tmp_path / ".loil").exists()  # nothing in the repo: config/local are init's
+    assert not (tmp_path / ".loi").exists()  # nothing in the repo: config/local are init's
     # central side
     assert p.home_dir == store_home / "projects" / PID
     assert sorted(x.relative_to(store_home).as_posix() for x in store_home.rglob("*")) == [
         "projects",
         f"projects/{PID}",
-        f"projects/{PID}/loil.log",
+        f"projects/{PID}/loi.log",
         f"projects/{PID}/sessions",
     ]
     assert p.log_path.read_bytes() == b""
@@ -70,9 +70,9 @@ def test_ensure_layout_and_idempotent(tmp_path, store_home):
 
 
 def test_ensure_needs_an_id(tmp_path, store_home):
-    with pytest.raises(LoilError, match="loil init"):
+    with pytest.raises(LoiError, match="loi init"):
         store.ensure(Project(tmp_path))
-    assert not (tmp_path / ".loil").exists() and not store_home.exists()
+    assert not (tmp_path / ".loi").exists() and not store_home.exists()
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores modes")
@@ -80,24 +80,24 @@ def test_ensure_repo_side_complete_when_central_fails(tmp_path, store_home):
     store_home.mkdir()
     store_home.chmod(0o500)
     try:
-        with pytest.raises(LoilError, match="cannot create"):
+        with pytest.raises(LoiError, match="cannot create"):
             store.ensure(Project(tmp_path, id=PID))
     finally:
         store_home.chmod(0o700)
     p = Project(tmp_path, id=PID)
-    assert not (tmp_path / ".loil").exists()
+    assert not (tmp_path / ".loi").exists()
     assert not (store_home / "projects").exists()
     store.ensure(p)  # repairs
     assert p.log_path.exists()
 
 
 def test_ensure_uses_pin_without_env(tmp_path, monkeypatch):
-    monkeypatch.delenv("LOIL_HOME")
+    monkeypatch.delenv("LOI_HOME")
     monkeypatch.setenv("HOME", str(tmp_path / "h"))
     pin = tmp_path / "pin"
     p = Project(tmp_path / "r", id=PID, home=pin)
     store.ensure(p)
-    assert (pin / "projects" / PID / "loil.log").exists() and not (tmp_path / "h").exists()
+    assert (pin / "projects" / PID / "loi.log").exists() and not (tmp_path / "h").exists()
 
 
 def test_store_dirs_are_private(p, store_home):
@@ -107,9 +107,9 @@ def test_store_dirs_are_private(p, store_home):
 
 def test_artifacts_dir(p):
     assert store.artifacts_dir(p, CC, "S1") == p.home_dir / "sessions" / CC / "S1"
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         store.artifacts_dir(p, CC, "../x")
-    with pytest.raises(LoilError, match="adapter name"):
+    with pytest.raises(LoiError, match="adapter name"):
         store.artifacts_dir(p, "../x", "S1")
     assert not (p.home_dir / "sessions" / CC).exists()
 
@@ -134,7 +134,7 @@ def test_session_round_trip_namespaced(p):
     s.title = "a name"
     store.write_session(p, s)
     assert store.read_session(p, CC, "S1") == s
-    with pytest.raises(LoilError, match="no session"):
+    with pytest.raises(LoiError, match="no session"):
         store.read_session(p, "codex", "S1")  # other namespace
 
 
@@ -142,10 +142,10 @@ def test_agent_required_and_validated(p):
     with pytest.raises(TypeError):
         store.Session(id="S1", project="x", start="t")  # type: ignore[call-arg]
     for bad in ("Claude Code", "", "../x"):
-        with pytest.raises(LoilError, match="adapter name"):
+        with pytest.raises(LoiError, match="adapter name"):
             sess(id="S1", agent=bad)
     raw(p, CC, "a", json.dumps({"v": 1, "id": "a", "project": "x", "start": "t"}))
-    with pytest.raises(LoilError, match="missing keys"):
+    with pytest.raises(LoiError, match="missing keys"):
         store.read_session(p, CC, "a")
     raw(p, CC, "b", json.dumps({"v": 1, "id": "b", "agent": 1, "project": "x", "start": "t"}))
     with pytest.raises(SchemaError, match="agent"):
@@ -177,7 +177,7 @@ def test_list_sessions_across_agents_sorted_and_malformed_skipped(p):
     assert [s.id for s in store.list_sessions(p, CC)] == ["c", "b"]
     assert [s.id for s in store.list_sessions(p, "codex")] == ["d", "a"]
     assert store.list_sessions(p, "zed") == []
-    with pytest.raises(LoilError, match="adapter name"):
+    with pytest.raises(LoiError, match="adapter name"):
         store.list_sessions(p, "Weird Dir")
     log = p.log_path.read_text()
     assert "claude-code/bad/session.json skipped" in log and "claude-code/v2/session.json skipped" in log
@@ -190,7 +190,7 @@ def test_list_sessions_across_agents_sorted_and_malformed_skipped(p):
     assert store.session_ids(p) == {"a", "b", "c", "d", "bad", "v2", "wrong", "moved", "stale", "S1", "S9"}
     assert store.session_ids(p, CC) == {"b", "c", "bad", "v2", "moved", "stale", "S1", "S9"}
     assert store.session_ids(p, "codex") == {"a", "d", "wrong"} and store.session_ids(p, "zed") == set()
-    with pytest.raises(LoilError, match="adapter name"):
+    with pytest.raises(LoiError, match="adapter name"):
         store.session_ids(p, "Weird Dir")
 
 
@@ -198,15 +198,15 @@ def test_list_sessions_without_store(tmp_path):
     assert store.list_sessions(Project(tmp_path, id=PID)) == []
     assert store.list_sessions(Project(tmp_path, id=PID), CC) == []
     assert store.session_ids(Project(tmp_path, id=PID)) == set()
-    with pytest.raises(LoilError, match="loil init"):  # the store needs an id
+    with pytest.raises(LoiError, match="loi init"):  # the store needs an id
         store.list_sessions(Project(tmp_path))
 
 
 @pytest.mark.parametrize("bad", ["../x", "a/b", "a\\b", "", ".", "..", "a\x00b", "x" * 201])
 def test_bad_ids(p, bad):
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         store.write_session(p, sess(id=bad))
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         store.read_session(p, CC, bad)
 
 
@@ -217,7 +217,7 @@ def test_long_id_at_the_limit_round_trips(p):
 
 
 def test_missing_session(p):
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         store.read_session(p, CC, "nope")
 
 
@@ -242,7 +242,7 @@ def test_start_null_and_wrong_types_are_schema_errors(p):
 
 
 def test_nan_never_written(p):
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         store.write_session(p, sess(id="a", segments=[{"at": float("nan")}]))
     assert not store.session_path(p, CC, "a").exists()
 
@@ -255,7 +255,7 @@ def test_failed_replace_keeps_old_file(p, monkeypatch):
         raise OSError("disk on fire")
 
     monkeypatch.setattr(os, "replace", boom)
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         store.write_session(p, sess(id="a", start="later"))
     assert store.session_path(p, CC, "a").read_bytes() == before
     assert os.listdir(store.session_dir(p, CC, "a")) == ["session.json"]  # temp cleaned
@@ -280,7 +280,7 @@ def test_update_session_mutates_under_the_lock(p):
     assert s.end and len(s.segments) == 1
     again = store.read_session(p, CC, "S1")
     assert again.segments == [{"source": "resume", "at": "t"}] and again.end == s.end
-    with pytest.raises(LoilError, match="no session"):
+    with pytest.raises(LoiError, match="no session"):
         store.update_session(p, CC, "S2", fn)
     assert not store.session_dir(p, CC, "S2").exists()  # nothing created for a missing session
     assert "without a lock" not in p.log_path.read_text()  # refused before the lock attempt
@@ -293,7 +293,7 @@ def test_update_session_default_creates_once(p):
     assert store.read_session(p, CC, "S3").start == created.start
     store.update_session(p, CC, "S3", lambda s: s.segments.append({"source": "resume"}), default=_s(p, "S3"))
     assert store.read_session(p, CC, "S3").segments == [{"source": "resume"}]  # existing file wins over default
-    with pytest.raises(LoilError, match="default must be"):
+    with pytest.raises(LoiError, match="default must be"):
         store.update_session(p, CC, "S4", lambda s: None, default=_s(p, "S5"))
 
 
@@ -304,7 +304,7 @@ def test_update_session_refuses_identity_changes(p):
     def rename(s):
         s.id = "S9"
 
-    with pytest.raises(LoilError, match="must not change"):
+    with pytest.raises(LoiError, match="must not change"):
         store.update_session(p, CC, "S1", rename)
     assert store.session_path(p, CC, "S1").read_bytes() == before
     assert not store.session_path(p, CC, "S9").exists()
@@ -325,8 +325,8 @@ def test_update_session_without_a_lock_still_writes_and_logs(p, monkeypatch):
 
 UPDATER = """
 import sys
-from loil.record import store
-from loil.record.project import Project
+from loi.record import store
+from loi.record.project import Project
 p = Project(sys.argv[1], id=sys.argv[2])
 mode = sys.argv[3]
 def fn(s):

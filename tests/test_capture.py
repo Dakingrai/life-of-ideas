@@ -14,19 +14,19 @@ from pathlib import Path
 
 import pytest
 
-from loil import adapters
-from loil.record import store
-from loil.adapters.claude_code import PlanScan, _plans_dir, _slug
-from loil.capture import capture
-from loil.commands.init import run_init
-from loil.record.project import Project
+from loi import adapters
+from loi.record import store
+from loi.adapters.claude_code import PlanScan, _plans_dir, _slug
+from loi.capture import capture
+from loi.commands.init import run_init
+from loi.record.project import Project
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only")
 CC = "claude-code"
 SID = "eb8fb6e3-1f80-4688-a4c5-f7fc4d1e4991"
 SID2 = "eeeeeeee-0000-0000-0000-000000000002"
 FOREIGN = "ffffffff-0000-0000-0000-000000000001"
-PY = [sys.executable, "-m", "loil"]
+PY = [sys.executable, "-m", "loi"]
 
 ADAPTER_PATHS = [  # what one capture of SID's layout stores, besides plans
     "transcript.jsonl.gz",
@@ -86,7 +86,7 @@ def make_layout(cc: Path, repo: Path, other_repo: Path, *, big: int = 0) -> Path
     os.symlink(s / "custom-title.json", s / "link.json")  # symlink: skipped
     os.symlink(s / "tool-results", s / "linked-dir")  # symlinked dir: never followed
     (s / "git").mkdir()
-    (s / "git" / "x").write_text("a Claude-side file under a name loil owns: skipped\n")
+    (s / "git" / "x").write_text("a Claude-side file under a name loi owns: skipped\n")
     fh = cc / "file-history" / SID
     fh.mkdir(parents=True)
     (fh / "08b710c6e932d468@v1").write_bytes(b"")  # Claude writes empty first versions
@@ -128,7 +128,7 @@ def env(tmp_path, monkeypatch, store_home):
 
 
 def _folder(path: Path) -> Path:
-    path.mkdir(parents=True, exist_ok=True)  # no `git init`: the root is the nearest .loil/
+    path.mkdir(parents=True, exist_ok=True)  # no `git init`: the root is the nearest .loi/
     return path
 
 
@@ -137,8 +137,8 @@ def repo(tmp_path, env):
     r = _folder(tmp_path / "repo")
     (r / "sub").mkdir()
     other = _folder(tmp_path / "repo-other")  # a sibling whose slug shares the prefix…
-    (other / ".loil").mkdir()  # …and is a project of its own
-    (other / ".loil" / "config.toml").write_text('schema = 1\nid = "01BX5ZZKBKACTAV9WEVGEMMVRZ"\nname = "other"\ncreated = "c"\nloil_version = "v"\n')
+    (other / ".loi").mkdir()  # …and is a project of its own
+    (other / ".loi" / "config.toml").write_text('schema = 1\nid = "01BX5ZZKBKACTAV9WEVGEMMVRZ"\nname = "other"\ncreated = "c"\nloi_version = "v"\n')
     assert run_init(cwd=r, backfill=False, out=io.StringIO(), err=io.StringIO()) == 0
     return r
 
@@ -285,19 +285,19 @@ def test_wiped_session_dir_takes_the_session_with_it(repo, transcript):
     """The session file lives beside its captures, so wiping the dir is wiping the session."""
     import shutil
 
-    from loil.errors import LoilError
+    from loi.errors import LoiError
 
     s = do_capture(repo, new_session(repo, transcript))
     shutil.rmtree(adir(repo))
-    with pytest.raises(LoilError, match="no session"):
+    with pytest.raises(LoiError, match="no session"):
         do_capture(repo, s)
     assert not adir(repo).exists()  # nothing recreated
 
 
 def test_sources_under_reserved_names_are_skipped(repo, transcript):
-    """`session.json`, `payloads/`, `plans/`, … are loil's: a Claude-side file there must not
+    """`session.json`, `payloads/`, `plans/`, … are loi's: a Claude-side file there must not
     overwrite ours."""
-    from loil.adapters.claude_code import tree_sources
+    from loi.adapters.claude_code import tree_sources
 
     sdir = transcript.parent / SID
     (sdir / "session.json").write_text('{"not": "ours"}\n')
@@ -316,7 +316,7 @@ def test_sources_under_reserved_names_are_skipped(repo, transcript):
 
 
 def test_oversized_source_is_skipped_not_fatal(repo, transcript, monkeypatch):
-    import loil.capture as cap
+    import loi.capture as cap
 
     monkeypatch.setattr(cap, "MAX_BYTES", 2500)  # the 3000-byte tool result is over the cap
     rows = []
@@ -430,8 +430,8 @@ def test_plan_scan_finds_keys_across_chunk_boundaries_not_escaped_text(transcrip
 
 
 def test_data_sources_are_stored_and_idempotent(repo, transcript):
-    from loil.adapters.base import Source
-    from loil.capture import store_sources
+    from loi.adapters.base import Source
+    from loi.capture import store_sources
 
     s = new_session(repo, transcript)
     rows = []
@@ -474,7 +474,7 @@ def test_pre_compact_hook_snapshots_without_end(repo, transcript):
 
 
 def test_session_end_subprocess_wall_time_with_capture(repo, transcript, tmp_path):
-    """Timing recorded: a ~1 MB synthetic layout through `python -m loil hook`."""
+    """Timing recorded: a ~1 MB synthetic layout through `python -m loi hook`."""
     big_t = make_layout(tmp_path / "cc2", repo, tmp_path / "repo-other", big=1 << 20)
     ad = adapters.get(CC)
     ad.handle("session-start", hook_payload("session-start", repo, big_t, source="startup"))
@@ -488,7 +488,7 @@ def test_session_end_subprocess_wall_time_with_capture(repo, transcript, tmp_pat
         assert p.returncode == 0 and p.stdout == b"", p.stderr
     s = store.read_session(project(repo), CC, SID)
     assert s.capture_state == "done"
-    print(f"\nloil hook claude-code session-end (1 MB layout): first {times[0]*1000:.0f} ms, idempotent best {min(times[1:])*1000:.0f} ms (budget 30 s)")
+    print(f"\nloi hook claude-code session-end (1 MB layout): first {times[0]*1000:.0f} ms, idempotent best {min(times[1:])*1000:.0f} ms (budget 30 s)")
     assert min(times) < 5
 
 
@@ -513,7 +513,7 @@ def test_concurrent_session_end_and_pre_compact_captures_are_not_torn(repo, tran
 
 
 def test_one_line_keeps_the_tail_of_long_errors():
-    from loil.capture import ONE_LINE_MAX, _one_line
+    from loi.capture import ONE_LINE_MAX, _one_line
 
     path = "/" + "/".join(f"segment-{i:03d}" for i in range(40)) + "/needle.txt"
     assert len(path) > ONE_LINE_MAX

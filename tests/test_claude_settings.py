@@ -5,12 +5,12 @@ import json
 
 import pytest
 
-from loil import adapters
-from loil.adapters import claude_settings as cs
-from loil.adapters.base import Adapter
-from loil.errors import LoilError
+from loi import adapters
+from loi.adapters import claude_settings as cs
+from loi.adapters.base import Adapter
+from loi.errors import LoiError
 
-CMD = "/home/u/.local/bin/loil"
+CMD = "/home/u/.local/bin/loi"
 CC = adapters.get("claude-code")
 START = {"type": "command", "command": f"{CMD} hook claude-code session-start"}
 END = {"type": "command", "command": f"{CMD} hook claude-code session-end", "timeout": 30}
@@ -50,13 +50,13 @@ def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def loil_entries(data, event, name):
+def loi_entries(data, event, name):
     return [e for g in data["hooks"][event] for e in g["hooks"] if e["command"].endswith(f"hook claude-code {name}")]
 
 
 def test_hook_command():
-    assert cs.hook_command("/x/loil", "claude-code", "session-start") == "/x/loil hook claude-code session-start"
-    assert cs.hook_command("/some dir/loil", "codex", "stop") == "'/some dir/loil' hook codex stop"
+    assert cs.hook_command("/x/loi", "claude-code", "session-start") == "/x/loi hook claude-code session-start"
+    assert cs.hook_command("/some dir/loi", "codex", "stop") == "'/some dir/loi' hook codex stop"
 
 
 def test_absent_file_exact_bytes(path):
@@ -83,13 +83,13 @@ def test_second_call_is_noop(path):
 
 
 def test_command_with_space_is_quoted_and_recognised(path):
-    cmd = "/home/some user/.local/bin/loil"
+    cmd = "/home/some user/.local/bin/loi"
     assert cs.install_hooks(path, cmd, CC) == "installed"
     written = load(path)["hooks"]["SessionEnd"][0]["hooks"][0]["command"]
-    assert written == "'/home/some user/.local/bin/loil' hook claude-code session-end"
+    assert written == "'/home/some user/.local/bin/loi' hook claude-code session-end"
     assert cs.install_hooks(path, cmd, CC) is None  # recognised as ours via shlex.split
     # a stale quoted command is still ours and gets repaired
-    write(path, {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": "'/old dir/loil' hook claude-code session-start"}]}]}})
+    write(path, {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": "'/old dir/loi' hook claude-code session-start"}]}]}})
     assert cs.install_hooks(path, cmd, CC) == "installed"  # SessionEnd added, start repaired
     assert len(load(path)["hooks"]["SessionStart"]) == 1
 
@@ -123,24 +123,24 @@ def test_stale_command_repaired_in_place_no_duplicate(path):
                         "hooks": [
                             {
                                 "type": "command",
-                                "command": "/old/.venv/bin/loil hook claude-code session-start",
+                                "command": "/old/.venv/bin/loi hook claude-code session-start",
                                 "note": "mine",
                             }
                         ],
                     }
                 ],
-                "SessionEnd": [{"hooks": [{"type": "command", "command": "/old/loil hook claude-code session-end"}]}],
-                "PreCompact": [{"hooks": [{"type": "command", "command": "/old/loil hook claude-code pre-compact"}]}],
+                "SessionEnd": [{"hooks": [{"type": "command", "command": "/old/loi hook claude-code session-end"}]}],
+                "PreCompact": [{"hooks": [{"type": "command", "command": "/old/loi hook claude-code pre-compact"}]}],
             }
         },
     )
     assert cs.install_hooks(path, CMD, CC) == "repaired"
     d = load(path)
-    assert loil_entries(d, "PreCompact", "pre-compact") == [PRE]
-    start = loil_entries(d, "SessionStart", "session-start")
+    assert loi_entries(d, "PreCompact", "pre-compact") == [PRE]
+    start = loi_entries(d, "SessionStart", "session-start")
     assert start == [{"type": "command", "command": START["command"], "note": "mine"}]
     assert d["hooks"]["SessionStart"][0]["matcher"] == ""  # group untouched
-    assert loil_entries(d, "SessionEnd", "session-end") == [END]  # timeout added on repair
+    assert loi_entries(d, "SessionEnd", "session-end") == [END]  # timeout added on repair
     assert cs.install_hooks(path, CMD, CC) is None
 
 
@@ -150,12 +150,12 @@ def test_duplicates_collapse_and_empty_group_removed(path):
         {
             "hooks": {
                 "SessionStart": [
-                    {"hooks": [{"type": "command", "command": "/a/loil hook claude-code session-start"}]},
-                    {"hooks": [{"type": "command", "command": "/b/loil hook claude-code session-start"}]},
+                    {"hooks": [{"type": "command", "command": "/a/loi hook claude-code session-start"}]},
+                    {"hooks": [{"type": "command", "command": "/b/loi hook claude-code session-start"}]},
                     {
                         "matcher": "resume",
                         "hooks": [
-                            {"type": "command", "command": "/c/loil hook claude-code session-start"},
+                            {"type": "command", "command": "/c/loi hook claude-code session-start"},
                             {"type": "command", "command": "/usr/bin/other"},
                         ],
                     },
@@ -176,14 +176,14 @@ def test_duplicates_collapse_and_empty_group_removed(path):
 
 def test_invalid_json_untouched(path):
     write(path, "{\n")
-    with pytest.raises(LoilError, match=r"settings\.local\.json"):
+    with pytest.raises(LoiError, match=r"settings\.local\.json"):
         cs.install_hooks(path, CMD, CC)
     assert path.read_bytes() == b"{\n"
 
 
 def test_not_an_object_untouched(path):
     write(path, "[]\n")
-    with pytest.raises(LoilError, match="object"):
+    with pytest.raises(LoiError, match="object"):
         cs.install_hooks(path, CMD, CC)
     assert path.read_bytes() == b"[]\n"
 
@@ -195,7 +195,7 @@ def test_not_an_object_untouched(path):
 def test_wrong_types_raise_and_untouched(path, bad):
     write(path, bad)
     before = path.read_bytes()
-    with pytest.raises(LoilError):
+    with pytest.raises(LoiError):
         cs.install_hooks(path, CMD, CC)
     assert path.read_bytes() == before
 
@@ -228,14 +228,13 @@ def test_foreign_shapes_inside_lists_skipped(path):
     "lookalike",
     [
         "/usr/bin/otherhook session-start",
-        "/x/loil hook claude-code session-start --extra",
-        "/x/loil 'hook claude-code session-start",
-        "/x/loil hook codex session-start",  # another adapter's entry: not ours
-        "/x/loil hook claude-code session-end",  # ours, but for the other event
-        "/x/loil hook session-end",
-        "/x/loi hook claude-code session-start",  # loi's entry (another tool): never ours
-        "/x/other hook claude-code session-start",  # right words, not a loil binary
-        "/x/loil hook claude-code session-end --x",  # options after the words: not ours
+        "/x/loi hook claude-code session-start --extra",
+        "/x/loi 'hook claude-code session-start",
+        "/x/loi hook codex session-start",  # another adapter's entry: not ours
+        "/x/loi hook claude-code session-end",  # ours, but for the other event
+        "/x/loi hook session-end",
+        "/x/other hook claude-code session-start",  # right words, not a loi binary
+        "/x/loi hook claude-code session-end --x",  # options after the words: not ours
     ],
 )
 def test_lookalike_commands_are_foreign_to_session_start(path, lookalike):
@@ -254,7 +253,7 @@ def test_hand_formatted_correct_file_not_rewritten(path):
 
 
 def test_mixed_repair_and_add_reports_installed(path):
-    write(path, {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": "/old/loil hook claude-code session-start"}]}]}})
+    write(path, {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": "/old/loi hook claude-code session-start"}]}]}})
     assert cs.install_hooks(path, CMD, CC) == "installed"
     assert load(path)["hooks"]["SessionStart"] == [{"hooks": [START]}]
 

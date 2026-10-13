@@ -10,10 +10,10 @@ from pathlib import Path
 
 import pytest
 
-from loil import adapters, snapshots
-from loil.record import store
-from loil.commands.init import run_init
-from loil.record.project import Project
+from loi import adapters, snapshots
+from loi.record import store
+from loi.commands.init import run_init
+from loi.record.project import Project
 from test_capture import CC, SID, SID2, env, make_layout, new_session, repo  # noqa: F401
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only")
@@ -169,8 +169,8 @@ def test_history_absent_is_fine(repo, tmp_path):
 
 WRITER = """
 import sys
-from loil import snapshots
-from loil.record.project import Project
+from loi import snapshots
+from loi.record.project import Project
 p = Project.open(sys.argv[1])
 snapshots.sync_history(p, sys.argv[2])
 """
@@ -246,7 +246,7 @@ def test_hooks_take_snapshots_and_git_state(repo, transcript, tmp_path, monkeypa
     paths = {a["path"] for a in s.artifacts}
     assert {"git/start.json", "git/end.json", "git/diff-end.patch.gz", "claude-project-entry.json", "transcript.jsonl.gz"} <= paths
     end = json.loads((p.home_dir / "sessions" / CC / SID / "git" / "end.json").read_bytes())
-    assert " M CLAUDE.md" in end["status_porcelain"] and end["diff_truncated"] is False  # plus the untracked .loil/ and .claude/ of this un-ignored test repo
+    assert " M CLAUDE.md" in end["status_porcelain"] and end["diff_truncated"] is False  # plus the untracked .loi/ and .claude/ of this un-ignored test repo
     import gzip
 
     assert b"+# rules, edited during the session" in gzip.decompress((p.home_dir / "sessions" / CC / SID / "git" / "diff-end.patch.gz").read_bytes())

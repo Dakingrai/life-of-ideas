@@ -1,6 +1,6 @@
 import pytest
 
-from loil.util import ulid
+from loi.util import ulid
 
 
 def test_shape():
@@ -63,7 +63,7 @@ def test_explicit_older_ms_is_honoured_and_still_monotonic_within_it():
 
 
 def test_clock_going_backwards_stays_monotonic(monkeypatch):
-    from loil.util import clock
+    from loi.util import clock
 
     a = ulid.new()
     monkeypatch.setattr(clock, "now_ms", lambda: 1_000)

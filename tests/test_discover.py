@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-from loil import adapters
-from loil.adapters.claude_code import _slug
+from loi import adapters
+from loi.adapters.claude_code import _slug
 from test_capture import FOREIGN, SID, SID2, env, make_layout, repo  # noqa: F401 — fixtures
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only")
@@ -49,13 +49,13 @@ def test_discover_transcript_without_cwd_or_timestamps(repo, tmp_path):
 def test_discover_skips_a_nested_project(repo, tmp_path):
     make_layout(tmp_path / "cc", repo, tmp_path / "repo-other")
     inner = repo / "inner"
-    (inner / ".loil").mkdir(parents=True)
-    (inner / ".loil" / "config.toml").write_text('schema = 1\nid = "01BX5ZZKBKACTAV9WEVGEMMVRZ"\nname = "inner"\ncreated = "c"\nloil_version = "v"\n')
+    (inner / ".loi").mkdir(parents=True)
+    (inner / ".loi" / "config.toml").write_text('schema = 1\nid = "01BX5ZZKBKACTAV9WEVGEMMVRZ"\nname = "inner"\ncreated = "c"\nloi_version = "v"\n')
     pdir = tmp_path / "cc" / "projects" / _slug(str(inner))  # shares the parent's slug prefix: scanned
     pdir.mkdir(parents=True)
     nested = "cccccccc-0000-0000-0000-000000000005"
     (pdir / f"{nested}.jsonl").write_text('{"type":"user","cwd":"%s","timestamp":"2026-08-27T00:00:00.000Z"}\n' % inner)
-    assert nested not in {d.id for d in adapters.get(CC).discover(repo)}  # its nearest .loil is inner
+    assert nested not in {d.id for d in adapters.get(CC).discover(repo)}  # its nearest .loi is inner
     assert [d.id for d in adapters.get(CC).discover(inner)] == [nested]
     # a transcript whose cwd is a *parent* of the root belongs to no project of ours
     (pdir / "dddddddd-0000-0000-0000-000000000006.jsonl").write_text('{"type":"user","cwd":"%s"}\n' % tmp_path)

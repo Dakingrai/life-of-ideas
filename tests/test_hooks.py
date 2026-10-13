@@ -1,11 +1,11 @@
-"""`loil hook claude-code session-start|session-end|pre-compact` against an inited temp project.
+"""`loi hook claude-code session-start|session-end|pre-compact` against an inited temp project.
 
 Fixtures under `tests/fixtures/claude-code/` are real Claude Code payloads (2.1.246) with
 `cwd`/`transcript_path` replaced by `{ROOT}`/`{TRANSCRIPT}`; the ones carrying `_note` are
 hand-written from the docs (`clear|fork`, `auto`, the other end reasons). In-process tests
-call the adapter's `handle`; subprocess tests go through `python -m loil hook` with `cwd` =
+call the adapter's `handle`; subprocess tests go through `python -m loi hook` with `cwd` =
 the repo, the payload `cwd` set, `CLAUDE*` scrubbed from the env. Nothing is ever written to
-stdout: loil injects no context.
+stdout: loi injects no context.
 """
 
 import io
@@ -20,21 +20,21 @@ from pathlib import Path
 
 import pytest
 
-from loil import adapters, hooks
-from loil.record import store
-from loil.commands.init import run_init
-from loil.record.project import Project
+from loi import adapters, hooks
+from loi.record import store
+from loi.commands.init import run_init
+from loi.record.project import Project
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only")
 
 CC = "claude-code"
 SID = "eb8fb6e3-1f80-4688-a4c5-f7fc4d1e4991"  # the spike's session id, in every real fixture
 FIX = Path(__file__).parent / "fixtures" / "claude-code"
-PY = [sys.executable, "-m", "loil"]
+PY = [sys.executable, "-m", "loi"]
 TS = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$")
-FORBIDDEN = re.compile(r"\b(argparse|typer|click|rich|importlib\.metadata|loil\.cli)\b")
-STUB_SET = ["loil", "loil.entry", "loil.errors", "loil.adapters", "loil.hooks"]
-ECHO = b"loil hook: claude-code session-start\n"
+FORBIDDEN = re.compile(r"\b(argparse|typer|click|rich|importlib\.metadata|loi\.cli)\b")
+STUB_SET = ["loi", "loi.entry", "loi.errors", "loi.adapters", "loi.hooks"]
+ECHO = b"loi hook: claude-code session-start\n"
 
 
 # --- fixtures -------------------------------------------------------------------------
@@ -59,7 +59,7 @@ def env(tmp_path, monkeypatch, store_home):
 
 
 def _folder(path: Path) -> Path:
-    path.mkdir(parents=True, exist_ok=True)  # no `git init`: the root is the nearest .loil/
+    path.mkdir(parents=True, exist_ok=True)  # no `git init`: the root is the nearest .loi/
     return path
 
 
@@ -151,8 +151,8 @@ def test_startup_creates_session_stores_payload_prints_nothing(repo, env, transc
     assert (session_file(repo).parent / a["path"]).read_bytes() == data  # the raw payload, byte for byte
     # nothing changed in the repo: the session file is in the store, beside its captures
     assert snapshot(repo) == before
-    assert session_file(repo) == Path(os.environ["LOIL_HOME"]) / "projects" / Project.open(repo).id / "sessions" / CC / SID / "session.json"
-    assert sorted(x.name for x in (repo / ".loil").iterdir()) == ["config.toml", "local.toml"]
+    assert session_file(repo) == Path(os.environ["LOI_HOME"]) / "projects" / Project.open(repo).id / "sessions" / CC / SID / "session.json"
+    assert sorted(x.name for x in (repo / ".loi").iterdir()) == ["config.toml", "local.toml"]
     p = run_hook("session-start", payload("session-start-resume.json", repo, transcript), repo)
     assert p.returncode == 0 and p.stdout == b"" and p.stderr == ECHO
 
@@ -219,7 +219,7 @@ def test_transcript_head_only_first_64k_and_torn_lines(repo, env, tmp_path):
     assert session(repo).start == session(repo).segments[0]["at"]  # nothing parsable in the head: now
     t.write_bytes(b'{"a":1}\n{"timestamp":"2026-01-01T00:00:00+00:00","type":"user"}\n')
     handle("session-start", payload("session-start-resume.json", repo, t, session_id="S3"))
-    assert session(repo, "S3").start == "2026-01-01T00:00:00.000Z"  # normalised to loil's shape
+    assert session(repo, "S3").start == "2026-01-01T00:00:00.000Z"  # normalised to loi's shape
 
 
 def test_transcript_path_updated_when_it_changes(repo, env, transcript, tmp_path):
@@ -285,7 +285,7 @@ def test_unknown_session_is_never_created(repo, env, transcript, event, name):
     assert handle(event, payload(name, repo, transcript, session_id="never-started")) is None
     assert snapshot(repo) == before
     assert not store.session_dir(Project.open(repo), CC, "never-started").exists()
-    assert f"hook claude-code {event}: LoilError(\"{event}: unknown session 'never-started'; nothing created\")" in project_log(repo)
+    assert f"hook claude-code {event}: LoiError(\"{event}: unknown session 'never-started'; nothing created\")" in project_log(repo)
 
 
 def test_real_sequence_startup_resume_precompact_compact_end(repo, env, transcript):
@@ -316,28 +316,28 @@ def test_bad_session_id_logged_to_project_nothing_created(repo, env, transcript)
         assert handle("session-start", payload("session-start-startup.json", repo, transcript, session_id=bad)) is None
     assert snapshot(repo) == before
     log = project_log(repo)
-    assert log.count("hook claude-code session-start: LoilError(") == 5 and "invalid session id '../x'" in log
+    assert log.count("hook claude-code session-start: LoiError(") == 5 and "invalid session id '../x'" in log
 
 
 def test_not_inited_clone_exits_0_creates_nothing_logs_globally(tmp_path, env, store_home, transcript):
     clone = _folder(tmp_path / "clone")
-    (clone / ".loil").mkdir()
-    (clone / ".loil" / "config.toml").write_text('schema = 1\nid = "01ARZ3NDEKTSV4RRFFQ69G5FAV"\nname = "clone"\ncreated = "c"\nloil_version = "v"\n')  # committed, no local.toml
+    (clone / ".loi").mkdir()
+    (clone / ".loi" / "config.toml").write_text('schema = 1\nid = "01ARZ3NDEKTSV4RRFFQ69G5FAV"\nname = "clone"\ncreated = "c"\nloi_version = "v"\n')  # committed, no local.toml
     store_home.mkdir()
     p = run_hook("session-start", payload("session-start-startup.json", clone, transcript), clone)
     assert p.returncode == 0 and p.stdout == b"" and p.stderr == ECHO
-    assert sorted(x.name for x in (clone / ".loil").iterdir()) == ["config.toml"]
-    assert "is not inited for this user (no .loil/local.toml); run `loil init`" in (store_home / "loil.log").read_text()
-    assert sorted(x.name for x in store_home.iterdir()) == ["loil.log"]  # no store dir for it either
+    assert sorted(x.name for x in (clone / ".loi").iterdir()) == ["config.toml"]
+    assert "is not inited for this user (no .loi/local.toml); run `loi init`" in (store_home / "loi.log").read_text()
+    assert sorted(x.name for x in store_home.iterdir()) == ["loi.log"]  # no store dir for it either
 
 
 def test_store_deleted_after_init_exits_0_creates_nothing(repo, env, transcript, store_home):
     shutil.rmtree(store_home / "projects")
     p = run_hook("session-start", payload("session-start-startup.json", repo, transcript), repo)
     assert p.returncode == 0 and p.stdout == b""
-    assert sorted(x.name for x in (repo / ".loil").iterdir()) == ["config.toml", "local.toml"]
+    assert sorted(x.name for x in (repo / ".loi").iterdir()) == ["config.toml", "local.toml"]
     assert not (store_home / "projects").exists()  # a hook never creates the store
-    assert "no store at" in (store_home / "loil.log").read_text()  # before the project is known: global log
+    assert "no store at" in (store_home / "loi.log").read_text()  # before the project is known: global log
 
 
 def test_outside_a_project_and_malformed_payloads(tmp_path, env, store_home):
@@ -347,27 +347,27 @@ def test_outside_a_project_and_malformed_payloads(tmp_path, env, store_home):
     for data in (b"not json", b"[1]", b'{"session_id": "x"}', b"\xff\xfe{}"):
         p = run_hook("session-start", data, nowhere)
         assert p.returncode == 0 and p.stdout == b"" and p.stderr == ECHO
-    log = (store_home / "loil.log").read_text().splitlines()
+    log = (store_home / "loi.log").read_text().splitlines()
     assert len(log) == 4 and "payload is not JSON" in log[0] and "not a JSON object" in log[1]
-    assert "not a loil project here (no .loil/config.toml in this directory or above); run `loil init`" in log[2]
+    assert "not a loi project here (no .loi/config.toml in this directory or above); run `loi init`" in log[2]
     assert "CLAUDE_PROJECT_DIR=None" in log[2] and "payload is not JSON" in log[3]
     assert list(nowhere.iterdir()) == []
 
 
 def test_branch_without_config_exits_0_creates_nothing_logs_globally(repo, env, transcript, store_home):
-    (repo / ".loil" / "config.toml").unlink()  # a branch that predates `loil init`: no longer a root
+    (repo / ".loi" / "config.toml").unlink()  # a branch that predates `loi init`: no longer a root
     before = snapshot(repo)
     p = run_hook("session-start", payload("session-start-startup.json", repo, transcript), repo)
     assert p.returncode == 0 and p.stdout == b"" and p.stderr == ECHO
     assert snapshot(repo) == before
-    assert (repo / ".loil" / "local.toml").is_file()  # local.toml alone is not the marker
-    assert "not a loil project here" in (store_home / "loil.log").read_text()
+    assert (repo / ".loi" / "local.toml").is_file()  # local.toml alone is not the marker
+    assert "not a loi project here" in (store_home / "loi.log").read_text()
 
 
 def test_unknown_event_word_logged_globally(repo, env, transcript, store_home):
     p = run_hook("bogus", payload("session-start-startup.json", repo, transcript), repo)
     assert p.returncode == 0 and p.stdout == b""
-    assert "unknown hook event 'bogus'" in (store_home / "loil.log").read_text()
+    assert "unknown hook event 'bogus'" in (store_home / "loi.log").read_text()
 
 
 # --- project resolution ---------------------------------------------------------------------
@@ -379,7 +379,7 @@ def test_hook_from_a_subdirectory(repo, env, transcript):
     p = run_hook("session-start", payload("session-start-startup.json", sub, transcript), sub)
     assert p.returncode == 0 and p.stdout == b""
     assert session(repo).project == str(repo)
-    assert not (sub / ".loil").exists()
+    assert not (sub / ".loi").exists()
 
 
 def test_claude_project_dir_wins_over_payload_cwd(tmp_path, env, transcript):
@@ -419,7 +419,7 @@ def test_import_set_per_path(repo, env, transcript):
     def imports(data: bytes) -> list[str]:
         e = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE")}
         p = subprocess.run(
-            [sys.executable, "-X", "importtime", "-m", "loil", "hook", CC, "session-start"],
+            [sys.executable, "-X", "importtime", "-m", "loi", "hook", CC, "session-start"],
             input=data,
             cwd=repo,
             env=e,
@@ -428,7 +428,7 @@ def test_import_set_per_path(repo, env, transcript):
         assert p.returncode == 0
         lines = [line for line in p.stderr.decode().splitlines() if line.startswith("import time:")]
         assert [line for line in lines if FORBIDDEN.search(line)] == []
-        return [line.rsplit("|", 1)[1].strip() for line in lines if "loil" in line]
+        return [line.rsplit("|", 1)[1].strip() for line in lines if "loi" in line]
 
     assert imports(b"") == STUB_SET
     assert imports(b"{}") == STUB_SET
@@ -436,8 +436,8 @@ def test_import_set_per_path(repo, env, transcript):
     real = imports(payload("session-start-startup.json", repo, transcript))
     # `-X importtime` does not list a module loaded through `importlib.import_module`
     # (`adapters.get`), only what that module imports itself: base, store, capture, …
-    assert real[:5] == STUB_SET and "loil.adapters.base" in real and "loil.capture" in real
-    assert "loil.shim" not in real and not [m for m in real if m.startswith("loil.commands")]
+    assert real[:5] == STUB_SET and "loi.adapters.base" in real and "loi.capture" in real
+    assert "loi.shim" not in real and not [m for m in real if m.startswith("loi.commands")]
 
 
 def test_session_start_wall_time(repo, env, transcript):
@@ -449,7 +449,7 @@ def test_session_start_wall_time(repo, env, transcript):
         times.append(time.perf_counter() - t0)
         assert p.returncode == 0
     best = min(times)
-    print(f"\nloil hook claude-code session-start: best {best * 1000:.0f} ms of 5 (soft budget 150 ms)")
+    print(f"\nloi hook claude-code session-start: best {best * 1000:.0f} ms of 5 (soft budget 150 ms)")
     assert best < 0.5, f"session-start took {best:.3f}s (soft budget 0.15 s)"
 
 
@@ -475,7 +475,7 @@ def test_session_start_wall_time_with_git(git_repo, env, transcript):
         times.append(time.perf_counter() - t0)
         assert p.returncode == 0 and p.stdout == b""
     best = min(times)
-    print(f"\nloil hook claude-code session-start (git repo, 300 files): best {best * 1000:.0f} ms of 5 (soft budget 150 ms)")
+    print(f"\nloi hook claude-code session-start (git repo, 300 files): best {best * 1000:.0f} ms of 5 (soft budget 150 ms)")
     assert best < 0.5, f"session-start with git took {best:.3f}s (soft budget 0.15 s)"
 
 
@@ -528,7 +528,7 @@ def test_run_in_process_prints_nothing(repo, env, transcript, monkeypatch, capfd
 
 
 def test_adapter_handle_contract():
-    from loil.adapters.base import Adapter
+    from loi.adapters.base import Adapter
 
     assert Adapter().handle("session-start", b"{}") is None
     a = adapters.get(CC)

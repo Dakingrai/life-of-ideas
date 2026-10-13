@@ -4,13 +4,13 @@ import re
 import subprocess
 import sys
 
-FORBIDDEN = re.compile(r"\b(argparse|typer|click|rich|importlib\.metadata|loil\.cli)\b")
+FORBIDDEN = re.compile(r"\b(argparse|typer|click|rich|importlib\.metadata|loi\.cli)\b")
 MODULES = (
-    "loil.util, loil.util.ulid, loil.util.gitignore, loil.util.clock, loil.util.fsutil, "
-    "loil.errors, loil.adapters, loil.hooks, loil.entry, loil.log, "
-    "loil.record, loil.record.project, loil.record.config, loil.record.store, loil.record.registry, "
-    "loil.shim, loil.adapters.base, loil.adapters.claude_code, loil.adapters.claude_settings, loil.commands.init, loil.capture, loil.gitstate, loil.snapshots, "
-    "loil.commands.capture, loil.commands.ls, loil.commands.verify"
+    "loi.util, loi.util.ulid, loi.util.gitignore, loi.util.clock, loi.util.fsutil, "
+    "loi.errors, loi.adapters, loi.hooks, loi.entry, loi.log, "
+    "loi.record, loi.record.project, loi.record.config, loi.record.store, loi.record.registry, "
+    "loi.shim, loi.adapters.base, loi.adapters.claude_code, loi.adapters.claude_settings, loi.commands.init, loi.capture, loi.gitstate, loi.snapshots, "
+    "loi.commands.capture, loi.commands.ls, loi.commands.verify"
 )
 
 

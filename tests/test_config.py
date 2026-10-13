@@ -3,10 +3,10 @@ import tomllib
 
 import pytest
 
-from loil.record import config
-from loil.util import ulid
-from loil.errors import LoilError, SchemaError
-from loil.record.project import Project
+from loi.record import config
+from loi.util import ulid
+from loi.errors import LoiError, SchemaError
+from loi.record.project import Project
 
 ID = "01ARZ3NDEKTSV4RRFFQ69G5FAV"
 
@@ -17,18 +17,18 @@ def p(tmp_path):
 
 
 def write(p, text):
-    p.loil_dir.mkdir(exist_ok=True)
+    p.loi_dir.mkdir(exist_ok=True)
     p.config_path.write_text(text)
 
 
 def write_local(p, text):
-    p.loil_dir.mkdir(exist_ok=True)
+    p.loi_dir.mkdir(exist_ok=True)
     p.local_path.write_text(text)
 
 
 def test_missing_config_raises_and_local_defaults(p):
     assert not config.config_exists(p)
-    with pytest.raises(LoilError, match="loil init"):
+    with pytest.raises(LoiError, match="loi init"):
         config.load_config(p)
     loc = config.load_local(p)
     assert (loc.schema, loc.home) == (1, None)
@@ -40,7 +40,7 @@ def test_missing_config_raises_and_local_defaults(p):
 def test_new_config():
     a, b = config.new_config("proj"), config.new_config("proj")
     assert ulid.is_valid(a.id) and a.id != b.id
-    assert (a.schema, a.name, a.loil_version) == (1, "proj", "0.1.0")
+    assert (a.schema, a.name, a.loi_version) == (1, "proj", "0.2.0")
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", a.created)
 
 
@@ -49,25 +49,25 @@ def test_save_text_and_round_trip(p):
     config.save_config(p, cfg)
     text = p.config_path.read_text()
     assert text == (
-        f'schema = 1\nid = "{cfg.id}"\nname = "proj"\ncreated = "{cfg.created}"\nloil_version = "0.1.0"\n'
+        f'schema = 1\nid = "{cfg.id}"\nname = "proj"\ncreated = "{cfg.created}"\nloi_version = "0.2.0"\n'
     )
     assert tomllib.loads(text) == {
-        "schema": 1, "id": cfg.id, "name": "proj", "created": cfg.created, "loil_version": "0.1.0"
+        "schema": 1, "id": cfg.id, "name": "proj", "created": cfg.created, "loi_version": "0.2.0"
     }
     assert config.load_config(p) == cfg
     assert config.config_exists(p)
-    cfg2 = config.Config(id=cfg.id, name="renamed", created=cfg.created, loil_version="9")
+    cfg2 = config.Config(id=cfg.id, name="renamed", created=cfg.created, loi_version="9")
     config.save_config(p, cfg2)
     assert config.load_config(p) == cfg2
     assert config.load_config(p).id == cfg.id
 
 
 def test_save_validates(p):
-    with pytest.raises(LoilError):
-        config.save_config(p, config.Config(id="nope", name="x", created="c", loil_version="v"))
-    with pytest.raises(LoilError, match="absolute"):
+    with pytest.raises(LoiError):
+        config.save_config(p, config.Config(id="nope", name="x", created="c", loi_version="v"))
+    with pytest.raises(LoiError, match="absolute"):
         config.save_local(p, config.Local(home="rel/x"))
-    assert not p.loil_dir.exists()
+    assert not p.loi_dir.exists()
 
 
 def test_del_character_survives_the_toml_writer(p, tmp_path):
@@ -118,10 +118,10 @@ def test_schema_string(p):
 
 
 def test_config_missing_field(p):
-    write(p, f'schema = 1\nid = "{ID}"\ncreated = "c"\nloil_version = "v"\n')
+    write(p, f'schema = 1\nid = "{ID}"\ncreated = "c"\nloi_version = "v"\n')
     with pytest.raises(SchemaError, match="name"):
         config.load_config(p)
-    write(p, f'schema = 1\nid = "{ID}"\nname = 3\ncreated = "c"\nloil_version = "v"\n')
+    write(p, f'schema = 1\nid = "{ID}"\nname = 3\ncreated = "c"\nloi_version = "v"\n')
     with pytest.raises(SchemaError, match="name"):
         config.load_config(p)
 
@@ -139,15 +139,15 @@ def test_not_toml(p):
 
 
 def test_unknown_key_ignored(p):
-    write(p, f'schema = 1\nid = "{ID}"\nname = "x"\ncreated = "c"\nloil_version = "v"\nfoo = 3\n# a comment\n')
+    write(p, f'schema = 1\nid = "{ID}"\nname = "x"\ncreated = "c"\nloi_version = "v"\nfoo = 3\n# a comment\n')
     assert config.load_config(p).id == ID
 
 
 
 
 def test_other_schema_is_refused_naming_it(p):
-    write(p, f'schema = 2\nid = "{ID}"\nname = "x"\ncreated = "c"\nloil_version = "v"\n')
-    with pytest.raises(SchemaError, match="declares schema 2; this loil understands 1"):
+    write(p, f'schema = 2\nid = "{ID}"\nname = "x"\ncreated = "c"\nloi_version = "v"\n')
+    with pytest.raises(SchemaError, match="declares schema 2; this loi understands 1"):
         config.load_config(p)
     write_local(p, 'schema = 2\n')
     with pytest.raises(SchemaError, match="schema 2"):

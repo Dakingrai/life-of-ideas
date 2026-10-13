@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timezone
 
-from loil.util import clock
+from loi.util import clock
 
 RX = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$")
 

@@ -1,14 +1,27 @@
 [project]
-name = "loil"
-version = "0.1.0"
+name = "loi-light"
+version = "0.2.0"
 description = "Back up every Claude Code session of a repo, and the metadata needed to see how the idea evolved."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Daking Rai", email = "dakingrae@gmail.com" }]
+keywords = ["claude-code", "provenance", "transcripts", "backup"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+]
 dependencies = []
 
+[project.urls]
+Repository = "https://github.com/Dakingrai/loi-light"
+
 [project.scripts]
-loil = "loil.entry:main"
+loi = "loi.entry:main"
 
 [build-system]
 requires = ["uv_build>=0.11,<0.12"]
@@ -18,3 +31,6 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.uv.build-backend]
+module-name = "loi"
