@@ -21,8 +21,8 @@ wheels = [
 ]
 
 [[package]]
-name = "loi-light"
-version = "0.2.0"
+name = "life-of-ideas"
+version = "0.2.1"
 source = { editable = "." }
 
 [package.dev-dependencies]

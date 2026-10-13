@@ -40,7 +40,7 @@ def test_missing_config_raises_and_local_defaults(p):
 def test_new_config():
     a, b = config.new_config("proj"), config.new_config("proj")
     assert ulid.is_valid(a.id) and a.id != b.id
-    assert (a.schema, a.name, a.loi_version) == (1, "proj", "0.2.0")
+    assert (a.schema, a.name, a.loi_version) == (1, "proj", "0.2.1")
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", a.created)
 
 
@@ -49,10 +49,10 @@ def test_save_text_and_round_trip(p):
     config.save_config(p, cfg)
     text = p.config_path.read_text()
     assert text == (
-        f'schema = 1\nid = "{cfg.id}"\nname = "proj"\ncreated = "{cfg.created}"\nloi_version = "0.2.0"\n'
+        f'schema = 1\nid = "{cfg.id}"\nname = "proj"\ncreated = "{cfg.created}"\nloi_version = "0.2.1"\n'
     )
     assert tomllib.loads(text) == {
-        "schema": 1, "id": cfg.id, "name": "proj", "created": cfg.created, "loi_version": "0.2.0"
+        "schema": 1, "id": cfg.id, "name": "proj", "created": cfg.created, "loi_version": "0.2.1"
     }
     assert config.load_config(p) == cfg
     assert config.config_exists(p)

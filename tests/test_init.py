@@ -139,7 +139,7 @@ def test_fresh(repo, env, store_home):
     cfg = config.load_config(Project(repo))
     assert ulid.is_valid(cfg.id)
     assert lines == [
-        "schema = 1", f'id = "{cfg.id}"', 'name = "repo"', f'created = "{cfg.created}"', 'loi_version = "0.2.0"'
+        "schema = 1", f'id = "{cfg.id}"', 'name = "repo"', f'created = "{cfg.created}"', 'loi_version = "0.2.1"'
     ]
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", cfg.created)
     assert (repo / ".loi" / "local.toml").read_text() == f'schema = 1\nhome = "{store_home}"\n'

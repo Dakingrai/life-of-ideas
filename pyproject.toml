@@ -1,6 +1,6 @@
 [project]
-name = "loi-light"
-version = "0.2.0"
+name = "life-of-ideas"
+version = "0.2.1"
 description = "Back up every Claude Code session of a repo, and the metadata needed to see how the idea evolved."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,7 +18,7 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Repository = "https://github.com/Dakingrai/loi-light"
+Repository = "https://github.com/Dakingrai/life-of-ideas"
 
 [project.scripts]
 loi = "loi.entry:main"

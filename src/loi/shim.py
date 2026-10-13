@@ -7,13 +7,13 @@ reinstalled or moved, so it never points at a `.venv/` or interpreter directly: 
 points here, and this file is the one indirection a single `loi init` anywhere repairs.
 
 Rules of `ensure_hook_command()`:
-- the path exists and is not loi-managed (the launcher `uv tool install loi-light` creates —
+- the path exists and is not loi-managed (the launcher `uv tool install life-of-ideas` creates —
   a symlink — or anything else): leave it untouched and use it as-is;
 - it is loi-managed (line 2 == MARKER): rewrite it to the running interpreter;
 - absent: create it. Unreadable/unwritable: `LoiError`, never a silent "repair".
 
 Any loi install that runs `init` repoints the shim to itself; a later
-`uv tool install loi-light` refuses while a managed shim exists (`--force` replaces it with
+`uv tool install life-of-ideas` refuses while a managed shim exists (`--force` replaces it with
 uv's launcher, which counts as foreign). v1 is Linux/macOS.
 """
 
@@ -76,7 +76,7 @@ def _refuse_ephemeral(exe: str) -> None:
     if in_cache or _EPHEMERAL_STORES.intersection(exe.split(os.sep)):
         raise LoiError(
             f"{exe} lives in uv's cache and disappears when this command exits; "
-            "install loi with `uv tool install loi-light` or run `loi init` from its venv"
+            "install loi with `uv tool install life-of-ideas` or run `loi init` from its venv"
         )
 
 

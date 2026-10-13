@@ -112,12 +112,12 @@ def test_help_lists_commands():
 def test_version():
     p = run(["--version"], text=True)
     assert p.returncode == 0
-    assert p.stdout == "loi 0.2.0\n"
+    assert p.stdout == "loi 0.2.1\n"
 
 
 def test_version_comes_from_the_published_distribution(monkeypatch):
     """`loi.__version__` must ask the metadata for the distribution pyproject names
-    (`loi-light`), not the import package: a stale `loi-*.dist-info` in a dev venv would
+    (`life-of-ideas`), not the import package: a stale `loi-*.dist-info` in a dev venv would
     otherwise mask a lookup that fails in every clean install."""
     import importlib.metadata
     import tomllib

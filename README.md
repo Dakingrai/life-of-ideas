@@ -12,11 +12,11 @@ ones you move yourself.
 ## Install
 
 ```sh
-uv tool install loi-light    # or: pipx install loi-light
+uv tool install life-of-ideas    # or: pipx install life-of-ideas
 ```
 
-The package on PyPI is `loi-light` (PyPI considers `loi` too close to an existing name);
-the command it installs is `loi`. Python 3.11 or newer, no dependencies.
+The package on PyPI is `life-of-ideas`; the command it installs is `loi`. Python 3.11 or
+newer, no dependencies.
 
 ## Use
 
@@ -96,7 +96,7 @@ transmitted: it stays local unless you copy it somewhere yourself.** If you poin
 
 ## Stopping
 
-`uv tool uninstall loi-light` (or `pipx uninstall loi-light`), then remove the three loi
+`uv tool uninstall life-of-ideas` (or `pipx uninstall life-of-ideas`), then remove the three loi
 entries from `.claude/settings.local.json`, or the file itself if nothing else is in it. The
 store is yours: it stays until you delete it.
 
