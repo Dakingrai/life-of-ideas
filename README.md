@@ -1,4 +1,6 @@
-# loi — life of ideas, light
+# life of ideas
+
+[![PyPI](https://img.shields.io/pypi/v/life-of-ideas)](https://pypi.org/project/life-of-ideas/)
 
 Claude Code deletes its transcripts after about thirty days. `loi` keeps them, and
 everything around them that you would need later to see how an idea evolved, in a private
@@ -103,8 +105,7 @@ store is yours: it stays until you delete it.
 ## Status
 
 Pre-alpha. Hooks, capture, backfill, `ls` and `verify` work for Claude Code on Linux and
-macOS. Not yet: importing sessions from a `loi` store, a periodic capture to bound loss on a
-crash, Codex.
+macOS. Not yet: a periodic capture to bound loss on a crash, Codex.
 
 ## License
 
