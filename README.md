@@ -7,9 +7,10 @@ everything around them that you would need later to see how an idea evolved, in 
 store on your disk. It does nothing else.
 
 **Everything stays on your machine. `loi` never uploads, syncs or sends anything anywhere.**
-It has no network code, no account, no telemetry and no cloud. The store is a folder on
-your own disk (`~/.loi`, readable only by you), and the only things that leave it are the
-ones you move yourself.
+It has no network code, no account, no telemetry and no cloud. It needs no API key or
+token and never calls a model: it only copies files, hashes them and reads git. The store is
+a folder on your own disk (`~/.loi`, readable only by you), and the only things that leave
+it are the ones you move yourself.
 
 ## Install
 
