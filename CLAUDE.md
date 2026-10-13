@@ -6,12 +6,14 @@ Read this before doing anything in this repo.
 
 `loi` (life of ideas) backs up every Claude Code session of a repo, plus the metadata
 needed to later reconstruct how the idea evolved, into a private store outside the repo
-(`~/.loi`). The command and import package are `loi`; the PyPI distribution and the GitHub
-repo are `life-of-ideas` (PyPI rejects `loi` and `loil` as confusable with existing names).
-This is a fresh start; the earlier prototype lives on as `life-of-ideas-abandoned` and nothing
-here imports from it. Nothing else: no events, no context injection, no dashboard, no model calls.
-The analysis happens later, from the backup. It exists because Claude Code deletes its
+(`~/.loi`). Nothing else: no events, no context injection, no dashboard, no model calls. The
+analysis happens later, from the backup. It exists because Claude Code deletes its
 transcripts after ~30 days.
+
+The command and import package are `loi`; the PyPI distribution and the GitHub repo are
+`life-of-ideas` (PyPI rejects `loi` and `loil` as confusable with existing names). This is a
+fresh start: the earlier prototype lives on as `life-of-ideas-abandoned`, and nothing here
+imports from it.
 
 What one session leaves in `~/.loi/projects/<id>/sessions/claude-code/<sid>/`: the raw hook
 payloads, the transcript, everything in the session's own directory (subagents, tool results),
