@@ -15,8 +15,8 @@ ones you move yourself.
 uv tool install loi-light    # or: pipx install loi-light
 ```
 
-The package on PyPI is `loi-light`; the command it installs is `loi`. Python 3.11 or
-newer, no dependencies.
+The package on PyPI is `loi-light` (PyPI considers `loi` too close to an existing name);
+the command it installs is `loi`. Python 3.11 or newer, no dependencies.
 
 ## Use
 
@@ -33,8 +33,8 @@ loi capture --backfill      # import every session Claude Code still holds (e.g.
 
 ```
 loi init: /Users/you/your/repo
-  .loi/config.toml            created (id 01M4SMD0F7ATJM7CKTP0Z29MS0)
-  .loi/local.toml             created (home = ~/.loi)
+  .loi/config.toml             created (id 01M4SMD0F7ATJM7CKTP0Z29MS0)
+  .loi/local.toml              created (home = ~/.loi)
   .gitignore                   created: .loi/local.toml, .claude/settings.local.json
   .claude/settings.local.json  hooks installed
   ~/.loi/projects/01M4SMD0F7ATJM7CKTP0Z29MS0/ created
