@@ -4,6 +4,11 @@ Claude Code deletes its transcripts after about thirty days. `loil` keeps them, 
 everything around them that you would need later to see how an idea evolved, in a private
 store on your disk. It does nothing else.
 
+**Everything stays on your machine. `loil` never uploads, syncs or sends anything anywhere.**
+It has no network code, no account, no telemetry and no cloud. The store is a folder on
+your own disk (`~/.loil`, readable only by you), and the only things that leave it are the
+ones you move yourself.
+
 ## What it keeps
 
 For every Claude Code session of a repo you `loil init`:
@@ -41,7 +46,9 @@ to keep it elsewhere. Nothing large or sensitive goes inside the repo: it gets
 `.loil/config.toml` (commit it; it is the project's id) and two gitignored per-user files.
 
 The store may hold what Claude's own files hold, including MCP environment values from
-`.claude/settings*.json`. It never leaves your machine unless you move it.
+`.claude/settings*.json`. **Nothing in it is ever transmitted: it stays local unless you
+copy it somewhere yourself.** If you point `LOIL_HOME` at a synced folder (iCloud, Dropbox),
+that sync is yours, not loil's.
 
 ## Status
 
