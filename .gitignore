@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.loil/local.toml
+.claude/settings.local.json
+.DS_Store
+
+# not part of the project (a stray folder dropped here)
+/resources/
